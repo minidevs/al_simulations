@@ -3,8 +3,8 @@
 
 int main(void)
 {
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
+    const int screenWidth = 640;
+    const int screenHeight = 480;
 
     const float GRAVITY = -9.81f;
 
@@ -16,14 +16,13 @@ int main(void)
     camera.offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
     camera.zoom = 1.0f;
 
-    Vector2 ballPosition = {-250.0f, 0.0f};
-    Vector2 currentBalLPosition = ballPosition;
+    Vector2 ballStartPosition = {-250.0f, 0.0f};
+    Vector2 currentBallPosition = ballStartPosition;
+
+    Vector2 groundPosition = {-screenWidth / 2, ballStartPosition.y + 100};
 
     float startVelocity = 2.0f;
     Vector2 curVelocity = {0.0f, 0.0f};
-
-    curVelocity.x = startVelocity;
-    curVelocity.y = startVelocity;
 
     float time = 0.0f;
     double angle = 0.0;
@@ -34,7 +33,6 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-
         if (IsKeyPressed(KEY_ENTER))
             started = !started;
 
@@ -44,21 +42,22 @@ int main(void)
         if (IsKeyDown(KEY_D) && angle < asin(1.0))
             angle += 0.1;
 
-        if (IsKeyDown(KEY_W) && startVelocity < 100.0f)
-            startVelocity += 5.0f;
+        if (IsKeyDown(KEY_W) && startVelocity < 20.0f)
+            startVelocity += 2.0f;
 
-        if (IsKeyDown(KEY_S) && startVelocity > 5.0f)
-            startVelocity -= 5.0f;
+        if (IsKeyDown(KEY_S) && startVelocity > 0.0f)
+            startVelocity -= 2.0f;
 
         BeginDrawing();
         ClearBackground(BLACK);
 
         BeginMode2D(camera);
+        Vector2 endPosition = (Vector2){(currentBallPosition.x + startVelocity * cos(angle)), (currentBallPosition.y + startVelocity * sin(angle))};
 
-        Vector2 endPosition = (Vector2){currentBalLPosition.x + (startVelocity * cos(angle)), currentBalLPosition.y + (startVelocity * sin(angle))};
-
-        DrawCircleV(currentBalLPosition, 15.0f, RED);
-        DrawLineEx(currentBalLPosition, endPosition, 2.0f, WHITE);
+        DrawCircleV(currentBallPosition, 15.0f, RED);
+        DrawLineEx(currentBallPosition, endPosition, 2.0f, WHITE);
+        Vector2 groundSize = {screenWidth, 100};
+        DrawRectangleV(groundPosition, groundSize, DARKGREEN);
 
         if (started)
         {
@@ -66,17 +65,24 @@ int main(void)
 
             time += deltaTime;
 
-            // ballPosition.x += curVelocity.x;
-            currentBalLPosition.y -= curVelocity.y;
+            currentBallPosition.x += curVelocity.x;
+            currentBallPosition.y += curVelocity.y;
 
+            // GRAVITY IMPLEMENTATION
             if (curVelocity.y > GRAVITY)
                 curVelocity.y += startVelocity + GRAVITY * time;
+        }
+        else
+        {
+            curVelocity.x = startVelocity * cos(angle);
+            // curVelocity.y = startVelocity * sin(angle);
         }
 
         EndMode2D();
 
         DrawText("PROJECTILE MOTION", 15.0f, 15.0f, 24, RED);
-        DrawText(TextFormat("Velocity: %.2f, Angle %.2f, Time: %.2f", startVelocity, angle, time), 15.0f, 45.0f, 18, WHITE);
+        DrawText(TextFormat("Starting Velocity: %.2f, Angle %.2f, Time: %.2f", startVelocity, angle, time), 15.0f, 45.0f, 18, WHITE);
+        DrawText(TextFormat("Current Velocity: (%.2f,%.2f)", curVelocity.x, curVelocity.y), 15.0f, 65.0f, 18, WHITE);
         EndDrawing();
     }
 
