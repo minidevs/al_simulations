@@ -19,7 +19,7 @@ int main(void)
     Vector2 ballStartPosition = {-250.0f, 0.0f};
     Vector2 currentBallPosition = ballStartPosition;
 
-    Vector2 groundPosition = {-screenWidth / 2, ballStartPosition.y + 100};
+    Vector2 groundPosition = {-screenWidth, ballStartPosition.y + 100};
 
     float startVelocity = 2.0f;
     Vector2 curVelocity = {0.0f, 0.0f};
@@ -39,11 +39,11 @@ int main(void)
         if (IsKeyPressed(KEY_SPACE))
             paused = !paused;
 
-        if (IsKeyDown(KEY_A) && angle > -asin(1.0))
-            angle -= 0.1;
+        if (IsKeyDown(KEY_A) && angle > -PI / 2)
+            angle -= PI / 16;
 
-        if (IsKeyDown(KEY_D) && angle < asin(1.0))
-            angle += 0.1;
+        if (IsKeyDown(KEY_D) && angle < PI / 2)
+            angle += PI / 16;
 
         if (IsKeyDown(KEY_W) && startVelocity < 50.0f)
             startVelocity += 2.0f;
@@ -59,7 +59,8 @@ int main(void)
 
         DrawCircleV(currentBallPosition, 25.0f, RED);
         DrawLineEx(currentBallPosition, endPosition, 2.0f, WHITE);
-        Vector2 groundSize = {screenWidth, 100};
+
+        Vector2 groundSize = {screenWidth * 2, 100};
         DrawRectangleV(groundPosition, groundSize, DARKGREEN);
 
         if (started && !paused)
@@ -72,7 +73,13 @@ int main(void)
             currentBallPosition.y += curVelocity.y;
 
             if (curVelocity.y < GRAVITY)
+            {
                 curVelocity.y += GRAVITY * time;
+            }
+            else if (currentBallPosition.y <= groundPosition.y)
+            {
+                curVelocity.y = 0.0f;
+            }
         }
         else if (!started)
         {
@@ -80,6 +87,7 @@ int main(void)
             if (paused)
                 paused = false;
 
+            time = 0.0f;
             curVelocity.x = startVelocity * cos(angle);
             curVelocity.y = startVelocity * sin(angle);
         }
@@ -87,7 +95,7 @@ int main(void)
         EndMode2D();
 
         DrawText("PROJECTILE MOTION", 15.0f, 15.0f, 24, RED);
-        DrawText(TextFormat("Starting Velocity: %.2f, Angle %.2f, Time: %.2f", startVelocity, angle, time), 15.0f, 45.0f, 18, WHITE);
+        DrawText(TextFormat("Starting Velocity: %.2f, Angle %.2f pi, Time: %.2f", startVelocity, angle / PI, time), 15.0f, 45.0f, 18, WHITE);
         DrawText(TextFormat("Current Velocity: (%.2f,%.2f)", curVelocity.x, curVelocity.y), 15.0f, 65.0f, 18, WHITE);
         EndDrawing();
     }
