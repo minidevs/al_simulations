@@ -1,12 +1,12 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#define GRAVITY 9.81f
+
 int main(void)
 {
     const int screenWidth = 640;
     const int screenHeight = 480;
-
-    const float GRAVITY = -9.81f;
 
     InitWindow(screenWidth, screenHeight, "projectile motion");
     SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -14,7 +14,7 @@ int main(void)
     Camera2D camera = {0};
 
     camera.offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
-    camera.zoom = 1.0f;
+    camera.zoom = 0.5f;
 
     Vector2 ballStartPosition = {-250.0f, 0.0f};
     Vector2 currentBallPosition = ballStartPosition;
@@ -29,12 +29,15 @@ int main(void)
 
     SetTargetFPS(60);
 
-    bool started = false;
+    bool started, paused = false;
 
     while (!WindowShouldClose())
     {
         if (IsKeyPressed(KEY_ENTER))
             started = !started;
+
+        if (IsKeyPressed(KEY_SPACE))
+            paused = !paused;
 
         if (IsKeyDown(KEY_A) && angle > -asin(1.0))
             angle -= 0.1;
@@ -42,7 +45,7 @@ int main(void)
         if (IsKeyDown(KEY_D) && angle < asin(1.0))
             angle += 0.1;
 
-        if (IsKeyDown(KEY_W) && startVelocity < 20.0f)
+        if (IsKeyDown(KEY_W) && startVelocity < 50.0f)
             startVelocity += 2.0f;
 
         if (IsKeyDown(KEY_S) && startVelocity > 0.0f)
@@ -54,12 +57,12 @@ int main(void)
         BeginMode2D(camera);
         Vector2 endPosition = (Vector2){(currentBallPosition.x + startVelocity * cos(angle)), (currentBallPosition.y + startVelocity * sin(angle))};
 
-        DrawCircleV(currentBallPosition, 15.0f, RED);
+        DrawCircleV(currentBallPosition, 25.0f, RED);
         DrawLineEx(currentBallPosition, endPosition, 2.0f, WHITE);
         Vector2 groundSize = {screenWidth, 100};
         DrawRectangleV(groundPosition, groundSize, DARKGREEN);
 
-        if (started)
+        if (started && !paused)
         {
             float deltaTime = GetFrameTime();
 
@@ -68,14 +71,17 @@ int main(void)
             currentBallPosition.x += curVelocity.x;
             currentBallPosition.y += curVelocity.y;
 
-            // GRAVITY IMPLEMENTATION
-            if (curVelocity.y > GRAVITY)
-                curVelocity.y += startVelocity + GRAVITY * time;
+            if (curVelocity.y < GRAVITY)
+                curVelocity.y += GRAVITY * time;
         }
-        else
+        else if (!started)
         {
+            currentBallPosition = ballStartPosition;
+            if (paused)
+                paused = false;
+
             curVelocity.x = startVelocity * cos(angle);
-            // curVelocity.y = startVelocity * sin(angle);
+            curVelocity.y = startVelocity * sin(angle);
         }
 
         EndMode2D();
