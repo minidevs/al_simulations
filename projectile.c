@@ -17,6 +17,8 @@ int main(void)
     camera.zoom = 0.5f;
 
     Vector2 ballStartPosition = {-250.0f, 0.0f};
+    float ballRadius = 25.0f;
+
     Vector2 currentBallPosition = ballStartPosition;
 
     Vector2 groundPosition = {-screenWidth, ballStartPosition.y + 100};
@@ -57,7 +59,7 @@ int main(void)
         BeginMode2D(camera);
         Vector2 endPosition = (Vector2){(currentBallPosition.x + startVelocity * cos(angle)), (currentBallPosition.y + startVelocity * sin(angle))};
 
-        DrawCircleV(currentBallPosition, 25.0f, RED);
+        DrawCircleV(currentBallPosition, ballRadius, RED);
         DrawLineEx(currentBallPosition, endPosition, 2.0f, WHITE);
 
         Vector2 groundSize = {screenWidth * 2, 100};
@@ -72,11 +74,13 @@ int main(void)
             currentBallPosition.x += curVelocity.x;
             currentBallPosition.y += curVelocity.y;
 
-            if (curVelocity.y < GRAVITY)
+            bool grounded = (currentBallPosition.y + ballRadius) >= groundPosition.y;
+
+            if (curVelocity.y < GRAVITY && !grounded)
             {
                 curVelocity.y += GRAVITY * time;
             }
-            else if (currentBallPosition.y <= groundPosition.y)
+            else if (grounded)
             {
                 curVelocity.y = 0.0f;
             }
